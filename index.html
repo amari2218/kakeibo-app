@@ -99,10 +99,8 @@
       padding: 10px 12px;
       font-weight: 900;
       cursor:pointer;
-    }
-    
-    /* Tabs: 1行目=絵文字 / 2行目=ラベル（枠サイズはそのまま） */
-    .tabBtn{
+
+      /* 1行目=絵文字 / 2行目=ラベル（枠サイズはそのまま） */
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -112,23 +110,25 @@
       text-align:center;
     }
     .tabEmoji{
-      font-size: 22px;
+      font-size: 18px;
       line-height: 1;
     }
     .tabLabel{
-      font-size: 20px;
+      font-size: 16px;
       font-weight: 900;
       white-space: nowrap;
     }
     @media (max-width: 420px){
-      .tabEmoji{ font-size: 20px; }
-      .tabLabel{ font-size: 18px; }
+      .tabBtn{ padding: 9px 10px; gap: 5px; }
+      .tabEmoji{ font-size: 16px; }
+      .tabLabel{ font-size: 14px; }
     }
-.tabBtn[aria-selected="true"]{
-border-color: #a8d2ff;
+    .tabBtn[aria-selected="true"]{
+      border-color: #a8d2ff;
       background: linear-gradient(135deg, var(--accentSoft), #ffffff);
       box-shadow: inset 0 0 0 3px rgba(120,182,255,.35);
     }
+
 
     /* ===== Cards ===== */
     .card{
@@ -1179,38 +1179,6 @@ font-weight: 900;
 
   function resetForm(keepDate=true, keepCat=true){
     if(!keepDate) document.getElementById("inDate").value = todayISO();
-
-  // ===== Quick toggle: 先取り貯金💰 =====
-  const saveQuickBtn = document.getElementById("saveQuickBtn");
-  let prevCatBeforeSave = null;
-
-  function syncSaveQuick(){
-    if(!saveQuickBtn) return;
-    const active = (inCat.value === "save");
-    saveQuickBtn.classList.toggle("active", active);
-    saveQuickBtn.setAttribute("aria-pressed", active ? "true" : "false");
-  }
-
-  if(saveQuickBtn){
-    saveQuickBtn.addEventListener("click", ()=>{
-      if(inCat.value !== "save"){
-        prevCatBeforeSave = inCat.value;
-        inCat.value = "save";
-      }else{
-        // toggle off: restore previous category if possible
-        const fallback = (prevCatBeforeSave && prevCatBeforeSave !== "save")
-          ? prevCatBeforeSave
-          : (CATS.find(c=>c.key !== "save")?.key || "other");
-        inCat.value = fallback;
-      }
-      syncSaveQuick();
-    });
-
-    // if user changes category manually, keep button state consistent
-    inCat.addEventListener("change", syncSaveQuick);
-    syncSaveQuick();
-  }
-
     document.getElementById("inAmount").value = "";
     document.getElementById("inMemo").value = "";
     document.getElementById("inStore").value = "";
