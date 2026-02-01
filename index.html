@@ -1,0 +1,1761 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🧾 支出管理</title>
+  <style>
+    @font-face{
+      font-family: "MyFont";
+      src: url("./fonts/MyFont.otf") format("opentype");
+      font-display: swap;
+    }
+    :root{
+      --bg: #f3f5f8;
+      --bg2:#eef2f7;
+      --card:#ffffff;
+      --ink:#1f2a37;
+      --muted:#607086;
+      --line:#dbe3ef;
+
+      --accent:#78b6ff;
+      --accentSoft:#e7f2ff;
+
+      /* 角丸ルール */
+      --r-card: 20px;   /* カード */
+      --r-input: 14px;  /* 入力/ボタン */
+      --r-pill: 999px;  /* ピル */
+
+      --shadow: 0 10px 28px rgba(31,42,55,.08);
+
+      --font: "MyFont", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", Arial;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--font);
+      color:var(--ink);
+      background:
+        radial-gradient(900px 600px at 10% 0%, #ffffff 0%, transparent 60%),
+        radial-gradient(900px 600px at 100% 20%, #d9ebff 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 12px 14px 70px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding: 10px 2px 8px;
+    }
+    .badge{
+      width:42px; height:42px; border-radius: 16px;
+      display:grid; place-items:center;
+      background: linear-gradient(135deg, var(--accent), #cfe6ff);
+      color:#0b3a66;
+      border: 1px solid #cfe2ff;
+      box-shadow: var(--shadow);
+      font-size: 20px;
+    }
+    .headText .title{
+      font-weight: 900;
+      letter-spacing: .02em;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+    .headText .sub{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 3px;
+    }
+
+    /* ===== Tabs (sticky) ===== */
+    .tabs{
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin: 10px 0 12px;
+      padding: 10px;
+      border-radius: var(--r-card);
+      background: rgba(255,255,255,.75);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 22px rgba(31,42,55,.06);
+      display:flex;
+      gap:10px;
+    }
+    .tabBtn{
+      flex:1;
+      border: 1px solid #d9e3f1;
+      border-radius: var(--r-pill);
+      background: #fff;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor:pointer;
+    }
+    .tabBtn[aria-selected="true"]{
+      border-color: #a8d2ff;
+      background: linear-gradient(135deg, var(--accentSoft), #ffffff);
+      box-shadow: 0 0 0 4px rgba(120,182,255,.12);
+    }
+
+    /* ===== Cards ===== */
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .bigSum{
+      cursor: pointer;
+      user-select:none;
+      background: linear-gradient(135deg, #ffffff, #f3f9ff);
+      border: 1px solid #cfe2ff;
+    }
+    .bigSum .month{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .bigSum .sum{
+      font-size: 26px;
+      font-weight: 900;
+      margin-top: 6px;
+      color:#0b3a66;
+    }
+    .bigSum .hint{
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    /* ===== Font panel ===== */
+    details.fontBox{
+      border: 1px solid #cfe2ff;
+      background: #f7fbff;
+      border-radius: var(--r-card);
+      padding: 10px 12px;
+    }
+    details.fontBox summary{
+      cursor:pointer;
+      font-weight: 900;
+      list-style:none;
+    }
+    details.fontBox summary::-webkit-details-marker{display:none}
+    .fontRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .fontRow > div{flex:1; min-width: 220px;}
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0 6px;
+    }
+    input, select, textarea, button{
+      font: inherit;
+      border-radius: var(--r-input);
+      border: 1px solid #d9e3f1;
+      background: #fff;
+      padding: 10px 12px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: #a8d2ff;
+      box-shadow: 0 0 0 4px rgba(120,182,255,.16);
+    }
+    .btn{
+      border:none;
+      background: linear-gradient(135deg, var(--accent), #b7dcff);
+      color: #073357;
+      font-weight: 900;
+      cursor:pointer;
+      padding: 11px 14px;
+      border-radius: var(--r-input);
+    }
+    .btnGhost{
+      background: #f7fbff;
+      border: 1px dashed #b9d7ff;
+      color: #0b3a66;
+      cursor:pointer;
+      padding: 11px 14px;
+      border-radius: var(--r-input);
+    }
+    .btnDanger{
+      background:#fff4f7;
+      border:1px solid #ffd1df;
+      color:#7a0b2e;
+      cursor:pointer;
+      padding: 11px 14px;
+      border-radius: var(--r-input);
+      font-weight:900;
+    }
+
+    .twoCol{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .twoCol > *{flex:1; min-width: 160px;}
+
+    /* ===== Lists ===== */
+    .list{
+      margin-top: 8px;
+      display:flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .rowItem{
+      border: 1px solid #e6edf7;
+      background: #fff;
+      border-radius: var(--r-card);
+      padding: 10px 10px;
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .tapArea{
+      flex:1;
+      cursor:pointer;
+      user-select:none;
+      padding: 2px 0;
+    }
+    .leftIcon{
+      width: 40px;
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items:center;
+      padding-top: 2px;
+      flex-shrink:0;
+    }
+    .catEmoji{
+      width: 34px; height: 34px;
+      border-radius: 14px;
+      display:grid; place-items:center;
+      background: #f7fbff;
+      border: 1px solid #cfe2ff;
+      font-size: 18px;
+    }
+    .editBtn, .trashBtn{
+      width: 34px; height: 34px;
+      border-radius: 14px;
+      display:grid; place-items:center;
+      background:#ffffff;
+      border: 1px solid #d9e3f1;
+      cursor:pointer;
+      font-size: 16px;
+    }
+    .trashBtn{
+      background:#fff4f7;
+      border-color:#ffd1df;
+    }
+
+    .line1{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      justify-content: space-between;
+    }
+    .memo{
+      font-weight: 900;
+      font-size: 13px;
+      line-height: 1.35;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+    .amount{
+      font-weight: 900;
+      font-size: 14px;
+      color:#0b3a66;
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+    .line2{
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+    .dateMini{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-right: 10px;
+      white-space: nowrap;
+    }
+
+    /* ===== Ledger header ===== */
+    .ledgerHead{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 8px;
+    }
+    .monthNav{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 11px;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--line);
+      background: #fbfdff;
+      font-size: 12px;
+      color: #22415c;
+    }
+    .miniIconBtn{
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      border: 1px solid #d9e3f1;
+      background: #fff;
+      cursor:pointer;
+      font-size: 16px;
+      display:grid;
+      place-items:center;
+    }
+    .miniIconBtn.on{
+      border-color:#ffd1df;
+      background:#fff4f7;
+    }
+
+    /* ===== Legend popover ===== */
+    .legendBox{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: var(--r-card);
+      border: 1px solid #cfe2ff;
+      background: #f7fbff;
+      color:#2e4d68;
+      font-size: 12px;
+      line-height: 1.65;
+      display:none;
+    }
+    .legendBox.show{display:block}
+
+    /* ===== Modal overlay (detail + confirm) ===== */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(20,30,40,.28);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+    .overlay.show{display:flex}
+    .modal{
+      width: min(520px, 100%);
+      background:#fff;
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      box-shadow: 0 18px 50px rgba(0,0,0,.18);
+      padding: 14px;
+      position: relative;
+    }
+    .modalHead{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+      margin-bottom: 8px;
+    }
+    .modalTitle{
+      font-weight: 900;
+      font-size: 14px;
+    }
+    .closeX{
+      width: 38px; height: 38px;
+      border-radius: 14px;
+      border: 1px solid #d9e3f1;
+      background:#fff;
+      cursor:pointer;
+      font-size: 16px;
+      display:grid; place-items:center;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 96px 1fr;
+      gap: 8px 10px;
+      padding: 10px 6px;
+    }
+    .k{color:var(--muted); font-size: 12px; font-weight: 800}
+    .v{font-size: 13px; font-weight: 900; color:#0b3a66}
+    .v.small{font-weight: 700; color:#1f2a37}
+    .modalActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: var(--r-pill);
+      box-shadow: 0 10px 30px rgba(31,42,55,.18);
+      padding: 10px 12px;
+      display:none;
+      gap: 10px;
+      align-items:center;
+      z-index: 30;
+      backdrop-filter: blur(10px);
+      font-size: 12px;
+      color:#22415c;
+    }
+    .toast.show{display:flex}
+    .undoBtn{
+      border-radius: var(--r-pill);
+      border: 1px solid #cfe2ff;
+      background: #f7fbff;
+      cursor:pointer;
+      padding: 6px 10px;
+      font-weight: 900;
+      color:#0b3a66;
+    }
+
+    .muted{color:var(--muted)}
+    .hr{
+      border:none;
+      border-top:1px solid #e6edf7;
+      margin: 12px 0;
+    }
+
+    /* Mobile padding feel */
+    @media (max-width: 480px){
+      .sum{font-size: 24px}
+      .tabBtn{padding: 10px 10px}
+      .leftIcon{width: 38px}
+    }
+    
+    .byCatRow{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:12px;
+      padding: 10px 12px;
+      border: 1px solid #e6edf7;
+      background:#fff;
+      border-radius: var(--r-card);
+    }
+    .byCatLeft{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 0;
+    }
+    .byCatLabel{
+      font-weight: 900;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+      /* ===== Graph ===== */
+  .chartScroll{
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .chartWrap{
+    display:grid;
+    grid-template-columns: 52px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .yAxis{
+    display:flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .yTick{
+    height: var(--chartStep);
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-right: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .chartArea{
+    --chartStep: 22px; /* 1目盛りの高さ（見た目） */
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: var(--r-input);
+    padding: 10px;
+    background-color: #fff;
+    background-clip: content-box;
+    background-image:
+      repeating-linear-gradient(
+        to top,
+        transparent 0,
+        transparent calc(var(--chartStep) - 1px),
+        rgba(219,227,239,.8) calc(var(--chartStep) - 1px),
+        rgba(219,227,239,.8) var(--chartStep)
+      );
+    box-sizing: border-box;
+  }
+  .bars{
+    height: 100%;
+    display:flex;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .barBtn{
+    flex: 1;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    display:flex;
+    align-items:flex-end;
+    cursor: pointer;
+      justify-content: center;
+  }
+  .barFill{
+    width: clamp(10px, 70%, 26px);
+    background: var(--accent);
+    border-radius: 12px 12px 6px 6px;
+    box-shadow: 0 8px 18px rgba(120,182,255,.25);
+  }
+  .barBtn:focus-visible .barFill{
+    outline: 3px solid rgba(120,182,255,.55);
+    outline-offset: 2px;
+  }
+  .xAxis{
+    display:flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .xTick{
+    flex:1;
+    text-align:center;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="badge">🦅</div>
+      <div class="headText">
+        <div class="title">支出管理</div>
+        <div class="sub">ホームは「〇〇年〇月 支出額：〇円」。明細は絵文字だけで軽く、タップで詳細。</div>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="tabs">
+      <button class="tabBtn" role="tab" id="tabbtn-home" aria-controls="tab-home" aria-selected="true">🏠 ホーム</button>
+      <button class="tabBtn" role="tab" id="tabbtn-input" aria-controls="tab-input" aria-selected="false">✍️ 入力</button>
+      <button class="tabBtn" role="tab" id="tabbtn-ledger" aria-controls="tab-ledger" aria-selected="false">🧾 明細</button>
+      <button class="tabBtn" role="tab" id="tabbtn-graph" aria-controls="tab-graph" aria-selected="false">📊 グラフ</button>
+    </nav>
+
+    <!-- HOME -->
+    <section id="tab-home" role="tabpanel" aria-labelledby="tabbtn-home">
+      <div class="card bigSum" id="homeSumCard" title="タップで明細へ">
+        <div class="month" id="homeMonth">----</div>
+        <div class="sum" id="homeSum">¥0</div>
+        <div class="hint">カードをタップすると、その月の明細に移動するよ。</div>
+      </div>
+
+      <div class="card" id="homeByCatCard">
+        <div class="pill">🏷️ 今月の内訳（カテゴリ別）</div>
+        <div class="list" id="homeByCatList" style="margin-top:10px;"></div>
+        <div class="muted" id="homeByCatEmpty" style="font-size:12px; margin-top:10px; display:none;">この月の明細はまだないよ。</div>
+      </div>
+
+      <div class="card">
+        <div class="muted" style="font-size:12px; line-height:1.6;">
+          ここは今は最小構成。欲が出てきたら「収入」「残高」「先取り貯金の扱い」も増築できる。
+        </div>
+      </div>
+    
+      <div class="card" id="backupCard">
+        <div class="pill">🧰 バックアップ</div>
+        <div class="muted" style="font-size:12px; line-height:1.6; margin-top:8px;">
+          このアプリのデータは「この端末のブラウザ内（localStorage）」に保存されるよ。ブラウザのデータ消去・端末変更に備えて、JSONで書き出し／読み込みできる。
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+          <button class="btn" id="exportJsonBtn">⬇️ JSONを書き出す</button>
+          <button class="btnGhost" id="exportCsvBtn">⬇️ CSV（明細）</button>
+        </div>
+
+        <div style="margin-top:12px;">
+          <input type="file" id="importFile" accept="application/json" style="display:none;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btnGhost" id="chooseImportBtn">⬆️ JSONを選ぶ</button>
+            <button class="btn" id="importReplaceBtn" disabled>🔁 置き換え</button>
+            <button class="btnGhost" id="importMergeBtn" disabled>➕ 追加</button>
+          </div>
+          <div class="muted" id="importInfo" style="font-size:12px; margin-top:8px;">※「JSONを選ぶ」でバックアップJSONを選ぶと、「置き換え」「追加」が押せるようになるよ。</div>
+        </div>
+      </div>
+</section>
+
+    <!-- INPUT -->
+    <section id="tab-input" role="tabpanel" aria-labelledby="tabbtn-input" hidden>
+      <div class="card">
+        <div class="pill" id="inputModePill">✍️ 追加モード</div>
+
+        <div class="twoCol">
+          <div>
+            <label>日付</label>
+            <input id="inDate" type="date">
+          </div>
+          <div>
+            <label>金額（円）</label>
+            <input id="inAmount" type="number" inputmode="numeric" placeholder="260">
+          </div>
+        </div>
+
+        <label>内容メモ</label>
+        <input id="inMemo" type="text" placeholder="お菓子代">
+
+        <label>店名（任意）</label>
+        <input id="inStore" type="text" placeholder="イオン">
+
+        <label>分類</label>
+        <select id="inCat"></select>
+
+        <div class="twoCol" style="margin-top: 12px;">
+          <button class="btn" id="saveBtn">➕ 追加する</button>
+          <button class="btnGhost" id="resetBtn">🧽 フォーム消去</button>
+        </div>
+
+        <hr class="hr">
+
+        <div class="pill">🕘 最近の入力（5件）</div>
+        <div class="list" id="recentList"></div>
+        <div class="muted" id="recentEmpty" style="font-size:12px; margin-top:8px; display:none;">まだ入力がないよ。</div>
+      </div>
+    </section>
+
+    <!-- LEDGER -->
+    <section id="tab-ledger" role="tabpanel" aria-labelledby="tabbtn-ledger" hidden>
+      <div class="card">
+        <div class="ledgerHead">
+          <div class="monthNav">
+            <button class="miniIconBtn" id="prevMonth" aria-label="前の月">◀</button>
+            <div class="pill" id="ledgerMonth">----</div>
+            <button class="miniIconBtn" id="nextMonth" aria-label="次の月">▶</button>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button class="miniIconBtn" id="legendBtn" aria-label="凡例">🏷️</button>
+            <button class="miniIconBtn" id="deleteModeBtn" aria-label="削除モード">🗑️</button>
+          </div>
+        </div>
+
+        <div class="legendBox" id="legendBox"></div>
+
+        <div class="pill" style="margin-top:10px;">支出額：<span id="ledgerSum" style="font-weight:900; color:#0b3a66;">¥0</span></div>
+
+        <div class="list" id="ledgerList" style="margin-top:10px;"></div>
+        <div class="muted" id="ledgerEmpty" style="font-size:12px; margin-top:10px; display:none;">この月の明細はまだないよ。</div>
+      </div>
+    </section>
+
+  <!-- GRAPH -->
+  <section id="tab-graph" role="tabpanel" aria-labelledby="tabbtn-graph" hidden>
+    <div class="card">
+      <div class="ledgerHead">
+        <div class="monthNav">
+          <button class="miniIconBtn" id="prevYear" aria-label="前の年">◀</button>
+          <div class="pill" id="graphYear">----</div>
+          <button class="miniIconBtn" id="nextYear" aria-label="次の年">▶</button>
+        </div>
+        <div class="muted" style="font-size:12px;">バーをタップで金額</div>
+      </div>
+
+      <div class="chartScroll" id="graphScroll">
+        <div class="chartWrap">
+          <div class="yAxis" id="graphYAxis"></div>
+
+          <div>
+            <div class="chartArea" id="graphArea">
+            <div class="bars" id="graphBars"></div>
+            </div>
+            <div class="xAxis" id="graphXAxis"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="muted" id="graphEmpty" style="font-size:12px; margin-top:10px; display:none;">この年はまだ明細がないよ。</div>
+    </div>
+  </section>
+  </div>
+
+
+  <!-- DETAIL MODAL -->
+  <div class="overlay" id="detailOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <div class="modalHead">
+        <div class="modalTitle" id="detailTitle">明細の詳細</div>
+        <button class="closeX" id="detailClose" aria-label="閉じる">×</button>
+      </div>
+      <div class="kv">
+        <div class="k">日付</div><div class="v small" id="dDate">-</div>
+        <div class="k">金額</div><div class="v" id="dAmount">-</div>
+        <div class="k">内容</div><div class="v small" id="dMemo">-</div>
+        <div class="k">店名</div><div class="v small" id="dStore">-</div>
+        <div class="k">分類</div><div class="v small" id="dCat">-</div>
+      </div>
+      <div class="modalActions">
+        <button class="btnGhost" id="detailEdit">✏ 編集</button>
+        <button class="btnDanger" id="detailDelete">🗑️ 削除</button>
+      </div>
+      <div class="muted" style="font-size:12px; margin-top:10px; line-height:1.6;">
+        ※ PCは Esc でも閉じられる。
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div class="overlay" id="confirmOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modalHead">
+        <div class="modalTitle" id="confirmTitle">削除する？</div>
+        <button class="closeX" id="confirmClose" aria-label="閉じる">×</button>
+      </div>
+      <div class="muted" id="confirmText" style="font-size:12px; line-height:1.65; padding: 0 6px 6px;"></div>
+      <div class="modalActions">
+        <button class="btnDanger" id="confirmYes">はい</button>
+        <button class="btnGhost" id="confirmNo">いいえ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST (Undo) -->
+  <div class="toast" id="toast">
+    <div id="toastText">削除しました</div>
+    <button class="undoBtn" id="undoBtn">↩ 元に戻す</button>
+  </div>
+
+  <!-- GRAPH MODAL -->
+  <div class="overlay" id="graphOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="graphTitle">
+      <div class="modalHead">
+        <div class="modalTitle" id="graphTitle">月別支出</div>
+        <button class="closeX" id="graphClose" aria-label="閉じる">×</button>
+      </div>
+      <div class="kv">
+        <div class="k">年月</div><div class="v small" id="gYM">-</div>
+        <div class="k">金額</div><div class="v" id="gAmount">-</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== Data =====
+  const KEY = "sishutsu_entries_v01";
+  const UIKEY = "sishutsu_ui_v01";
+
+  const CATS = [
+    { key:"food_buy",   label:"食費:買い出し🍙", icon:"🍙" },
+    { key:"food_treat", label:"食費:嗜好🥨",     icon:"🥨" },
+    { key:"daily",      label:"日用品費🧻",       icon:"🧻" },
+    { key:"transport",  label:"交通費🚃",         icon:"🚃" },
+    { key:"medical",    label:"医療費🩺",         icon:"🩺" },
+    { key:"social",     label:"交際費🛍️",        icon:"🛍️" },
+    { key:"fun",        label:"娯楽費🎮",         icon:"🎮" },
+    { key:"fixed",      label:"固定費📌",         icon:"📌" },
+    { key:"utility_volt",label:"光熱費:電気💡",  icon:"💡" },
+    { key:"utility_gas", label:"光熱費:ガス🍳",  icon:"🍳" },
+    { key:"utility_oil", label:"光熱費:灯油🔥",  icon:"🔥" },
+    { key:"save",       label:"先取り貯金💰",     icon:"💰" },
+    { key:"other",      label:"その他🐤",         icon:"🐤" },
+  ];
+  const CATMAP = Object.fromEntries(CATS.map(c => [c.key, c]));
+
+  function loadEntries(){
+    try { return JSON.parse(localStorage.getItem(KEY) || "[]"); }
+    catch { return []; }
+  }
+  function saveEntries(arr){
+    localStorage.setItem(KEY, JSON.stringify(arr));
+  }
+  function loadUI(){
+    try { return JSON.parse(localStorage.getItem(UIKEY) || "{}"); }
+    catch { return {}; }
+  }
+  function saveUI(obj){
+    localStorage.setItem(UIKEY, JSON.stringify(obj));
+  }
+
+  function yen(n){
+    const v = Number(n || 0);
+    return new Intl.NumberFormat("ja-JP", { style:"currency", currency:"JPY", maximumFractionDigits:0 }).format(v);
+  }
+  function todayISO(){
+    const d = new Date();
+    const tz = d.getTimezoneOffset() * 60000;
+    return new Date(Date.now() - tz).toISOString().slice(0,10);
+  }
+  function monthKey(dateStr){
+    return (dateStr || "").slice(0,7); // YYYY-MM
+  }
+  function monthLabel(m){
+    if(!m) return "----";
+    return m.replace("-", "年") + "月";
+  }
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  // ===== State =====
+  let state = {
+    tab: "home",
+    selectedMonth: monthKey(todayISO()),
+    selectedYear: Number(todayISO().slice(0,4)),
+    deleteMode: false,
+    legendOpen: false,
+    editingId: null,
+    detailId: null,
+
+    // undo
+    lastDeleted: null,
+    toastTimer: null,
+  };
+
+  // ===== Init UI =====
+  const inCat = document.getElementById("inCat");
+  for(const c of CATS){
+    const opt = document.createElement("option");
+    opt.value = c.key;
+    opt.textContent = c.label;
+    inCat.appendChild(opt);
+  }
+
+  document.getElementById("inDate").value = todayISO();
+
+  // ===== Tabs =====
+  function setTab(name){
+    state.tab = name;
+    const tabs = ["home","input","ledger","graph"];
+    for(const t of tabs){
+      document.getElementById(`tab-${t}`).hidden = (t !== name);
+      document.getElementById(`tabbtn-${t}`).setAttribute("aria-selected", t === name ? "true" : "false");
+    }
+    saveUI({...loadUI(), tab: state.tab});
+  }
+  document.getElementById("tabbtn-home").addEventListener("click", ()=> setTab("home"));
+  document.getElementById("tabbtn-input").addEventListener("click", ()=> setTab("input"));
+  document.getElementById("tabbtn-ledger").addEventListener("click", ()=> setTab("ledger"));
+  document.getElementById("tabbtn-graph").addEventListener("click", ()=> setTab("graph"));
+
+
+  // ===== Month selection =====
+  function computeLatestMonth(entries){
+    if(!entries.length) return monthKey(todayISO());
+    const sorted = [...entries].sort((a,b)=> (a.date < b.date ? 1 : -1));
+    return monthKey(sorted[0].date);
+  }
+  function setSelectedMonth(m){
+    state.selectedMonth = m;
+    saveUI({...loadUI(), selectedMonth: m});
+  }
+
+  function setSelectedYear(y){
+    state.selectedYear = y;
+    saveUI({...loadUI(), selectedYear: y});
+  }
+  function computeLatestYear(entries){
+    if(!entries.length) return Number(todayISO().slice(0,4));
+    const sorted = [...entries].sort((a,b)=> (a.date < b.date ? 1 : -1));
+    return Number(sorted[0].date.slice(0,4));
+  }
+
+  // Month nav
+  function addMonths(ym, delta){
+    const y = Number(ym.slice(0,4));
+    const m = Number(ym.slice(5,7));
+    const d = new Date(y, m-1 + delta, 1);
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    return `${d.getFullYear()}-${mm}`;
+  }
+  document.getElementById("prevMonth").addEventListener("click", ()=>{
+    setSelectedMonth(addMonths(state.selectedMonth, -1));
+    renderAll();
+  });
+  document.getElementById("nextMonth").addEventListener("click", ()=>{
+    setSelectedMonth(addMonths(state.selectedMonth, 1));
+    renderAll();
+  });
+
+  document.getElementById("prevYear").addEventListener("click", ()=>{
+    setSelectedYear(state.selectedYear - 1);
+    renderGraph();
+  });
+  document.getElementById("nextYear").addEventListener("click", ()=>{
+    setSelectedYear(state.selectedYear + 1);
+    renderGraph();
+  });
+
+  // ===== Home behavior =====
+  document.getElementById("homeSumCard").addEventListener("click", ()=>{
+  // ★ホームが見てる最新月を明細に反映してから移動
+    const latest = state.latestMonth || computeLatestMonth(loadEntries());
+    setSelectedMonth(latest);
+
+    setTab("ledger");
+    renderAll();
+  });
+
+  // ===== Delete mode + legend =====
+  const deleteModeBtn = document.getElementById("deleteModeBtn");
+  deleteModeBtn.addEventListener("click", ()=>{
+    state.deleteMode = !state.deleteMode;
+    deleteModeBtn.classList.toggle("on", state.deleteMode);
+    renderLedger();
+  });
+
+  const legendBtn = document.getElementById("legendBtn");
+  const legendBox = document.getElementById("legendBox");
+  legendBtn.addEventListener("click", ()=>{
+    state.legendOpen = !state.legendOpen;
+    legendBox.classList.toggle("show", state.legendOpen);
+  });
+
+  function renderLegend(){
+    const lines = CATS.map(c => `${c.icon} ＝ ${escapeHtml(c.label.replace(/^[^:]+:/, m => m))}`);
+    // label is already nice; keep 그대로
+    legendBox.innerHTML = lines.map(s => `<div>${s}</div>`).join("");
+  }
+
+  // ===== Add / Edit =====
+  const inputModePill = document.getElementById("inputModePill");
+  const saveBtn = document.getElementById("saveBtn");
+
+  function resetForm(keepDate=true, keepCat=true){
+    if(!keepDate) document.getElementById("inDate").value = todayISO();
+    document.getElementById("inAmount").value = "";
+    document.getElementById("inMemo").value = "";
+    document.getElementById("inStore").value = "";
+    if(!keepCat) document.getElementById("inCat").value = "food_treat";
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", ()=>{
+    resetForm(true, true);
+  });
+
+  function setEditMode(id){
+    const entries = loadEntries();
+    const e = entries.find(x => x.id === id);
+    if(!e) return;
+    state.editingId = id;
+    inputModePill.textContent = "✏ 編集モード";
+    saveBtn.textContent = "✅ 更新する";
+
+    document.getElementById("inDate").value = e.date;
+    document.getElementById("inAmount").value = e.amount;
+    document.getElementById("inMemo").value = e.memo;
+    document.getElementById("inStore").value = e.store || "";
+    document.getElementById("inCat").value = e.catKey;
+
+    setTab("input");
+  }
+
+  function clearEditMode(){
+    state.editingId = null;
+    inputModePill.textContent = "✍️ 追加モード";
+    saveBtn.textContent = "➕ 追加する";
+  }
+
+  saveBtn.addEventListener("click", ()=>{
+    const date = document.getElementById("inDate").value;
+    const amount = Number(document.getElementById("inAmount").value);
+    const memo = document.getElementById("inMemo").value.trim() || "（メモなし）";
+    const store = document.getElementById("inStore").value.trim();
+    const catKey = document.getElementById("inCat").value;
+
+    if(!date){ alert("日付が必要"); return; }
+    if(!Number.isFinite(amount) || amount <= 0){ alert("金額が必要"); return; }
+
+    const entries = loadEntries();
+
+    if(state.editingId){
+      const idx = entries.findIndex(x => x.id === state.editingId);
+      if(idx === -1){ clearEditMode(); return; }
+
+      entries[idx] = {
+        ...entries[idx],
+        date, amount, memo, store, catKey,
+        updatedAt: Date.now(),
+      };
+      saveEntries(entries);
+
+      const updated = entries[idx];
+      clearEditMode();
+
+      // 編集後は「詳細ポップアップに戻る」：該当月へ切替 → 明細タブ → 詳細
+      setSelectedMonth(monthKey(updated.date));
+      setTab("ledger");
+      renderAll();
+      openDetail(updated.id);
+      return;
+    }
+
+    // add
+    const id = crypto.randomUUID();
+    entries.push({
+      id,
+      date,
+      amount,
+      memo,
+      store,
+      catKey,
+      createdAt: Date.now(),
+      updatedAt: null,
+    });
+    saveEntries(entries);
+
+    // 追加後の挙動：日付と分類は保持、金額/メモ/店名は消す
+    resetForm(true, true);
+
+    // 最新月更新
+    const latest = computeLatestMonth(entries);
+    setSelectedMonth(latest);
+
+    renderAll();
+    showToast("追加したよ✅", false);
+  });
+
+  // ===== Rendering =====
+  function renderHome(){
+    const entries = loadEntries();
+    const latest = computeLatestMonth(entries);
+
+    // Home shows latest month sum and sets selectedMonth to latest
+    const sum = entries
+      .filter(e => monthKey(e.date) === latest)
+      .reduce((s,e)=> s + Number(e.amount||0), 0);
+
+    document.getElementById("homeMonth").textContent = monthLabel(latest);
+    document.getElementById("homeSum").textContent = yen(sum);
+    
+    state.latestMonth = latest; // ★追加（selectedMonthは触らない）
+    renderHomeBreakdown(latest);
+  }
+
+  function renderHomeBreakdown(month){
+    const entries = loadEntries();
+    const list = entries.filter(e => monthKey(e.date) === month);
+
+    const sums = new Map(); // catKey -> amount
+    for(const e of list){
+      const k = e.catKey || "other";
+      sums.set(k, (sums.get(k) || 0) + Number(e.amount || 0));
+    }
+
+    const rows = [];
+    for(const [catKey, amt] of sums.entries()){
+      const cat = CATMAP[catKey] || { label:"その他🐤", icon:"🐤" };
+      if(amt > 0){
+        rows.push({ catKey, label: cat.label, icon: cat.icon, amt });
+      }
+    }
+
+    rows.sort((a,b)=> b.amt - a.amt); // 金額の大きい順
+
+    const box = document.getElementById("homeByCatList");
+    const empty = document.getElementById("homeByCatEmpty");
+
+    if(!rows.length){
+      box.innerHTML = "";
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    box.innerHTML = rows.map(r => `
+      <div class="byCatRow">
+        <div class="byCatLeft">
+          <div class="catEmoji" title="${escapeHtml(r.label)}">${r.icon}</div>
+          <div class="byCatLabel">${escapeHtml(r.label)}</div>
+        </div>
+        <div class="amount">${yen(r.amt)}</div>
+      </div>
+    `).join("");
+  }
+
+  function rowHTML(e, mode){
+    // mode: "ledger" | "recent"
+    const cat = CATMAP[e.catKey] || {icon:"🐤", label:"その他🐤"};
+    const mmdd = e.date.slice(5).replace("-","/");
+    const storeLine = (e.store && e.store.trim()) ? `<div class="line2">🏪 ${escapeHtml(e.store.trim())}</div>` : "";
+    const memo = escapeHtml(e.memo || "（メモなし）");
+
+    // Deletion button on right only in ledger delete mode
+    const showTrashRight = (mode === "ledger" && state.deleteMode);
+
+    return `
+      <div class="rowItem" data-id="${e.id}">
+        <div class="leftIcon">
+          <div class="catEmoji" title="${escapeHtml(cat.label)}">${cat.icon}</div>
+        </div>
+
+        <div class="tapArea" data-tap="${e.id}">
+          <div class="line1">
+            <div style="display:flex; gap:10px; align-items:baseline; min-width:0;">
+              <div class="dateMini">${mmdd}</div>
+              <div class="memo" title="${memo}">${memo}</div>
+            </div>
+            <div class="amount">${yen(e.amount)}</div>
+          </div>
+          ${storeLine}
+        </div>
+
+        ${showTrashRight ? `<button class="trashBtn" data-trash="${e.id}" title="削除">🗑️</button>` : ``}
+      </div>
+    `;
+  }
+
+  function attachRowHandlers(container, mode){
+    // タップ → 詳細（削除モード中は無効）
+    container.querySelectorAll("[data-tap]").forEach(area=>{
+      area.addEventListener("click", ()=>{
+        const id = area.getAttribute("data-tap");
+        if(mode === "ledger" && state.deleteMode) return;
+        openDetail(id);
+      });
+    });
+
+    // 明細（削除モード）の🗑️
+    container.querySelectorAll("[data-trash]").forEach(btn=>{
+      btn.addEventListener("click", (ev)=>{
+        ev.stopPropagation();
+        const id = btn.getAttribute("data-trash");
+        askDelete(id);
+      });
+    });
+  }
+
+  function renderRecent(){
+    const entries = loadEntries()
+      .slice()
+      .sort((a,b)=> (a.date < b.date ? 1 : (a.date > b.date ? -1 : (b.createdAt||0)-(a.createdAt||0)) ));
+
+    const recent = entries.slice(0,5);
+    const box = document.getElementById("recentList");
+    const empty = document.getElementById("recentEmpty");
+
+    if(!recent.length){
+      box.innerHTML = "";
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    box.innerHTML = recent.map(e => rowHTML(e, "recent")).join("");
+    attachRowHandlers(box, "recent");
+  }
+
+  function renderLedger(){
+    renderLegend();
+
+    const entries = loadEntries();
+    const m = state.selectedMonth;
+
+    document.getElementById("ledgerMonth").textContent = monthLabel(m);
+
+    const list = entries
+      .filter(e => monthKey(e.date) === m)
+      .slice()
+      .sort((a,b)=> (a.date < b.date ? 1 : (a.date > b.date ? -1 : (b.createdAt||0)-(a.createdAt||0)) ));
+
+    const sum = list.reduce((s,e)=> s + Number(e.amount||0), 0);
+    document.getElementById("ledgerSum").textContent = yen(sum);
+
+    const box = document.getElementById("ledgerList");
+    const empty = document.getElementById("ledgerEmpty");
+
+    deleteModeBtn.classList.toggle("on", state.deleteMode);
+
+    if(!list.length){
+      box.innerHTML = "";
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    box.innerHTML = list.map(e => rowHTML(e, "ledger")).join("");
+    attachRowHandlers(box, "ledger");
+  }
+
+  function renderGraph(){
+    const entries = loadEntries();
+    const y = state.selectedYear;
+
+    document.getElementById("graphYear").textContent = `${y}年`;
+
+    const sums = Array(12).fill(0);
+    for(const e of entries){
+      if(!e.date) continue;
+      if(Number(e.date.slice(0,4)) !== y) continue;
+      const m = Number(e.date.slice(5,7)) - 1;
+      if(m>=0 && m<12) sums[m] += Number(e.amount || 0);
+    }
+
+    const max = Math.max(...sums, 0);
+    const STEP_YEN = 10000;
+    let kMax = Math.ceil(max / STEP_YEN);
+    if(kMax < 8) kMax = 8; // 見た目の最低目盛り（0〜8万）
+
+    const area = document.getElementById("graphArea");
+    const yAxis = document.getElementById("graphYAxis");
+    const bars = document.getElementById("graphBars");
+    const xAxis = document.getElementById("graphXAxis");
+    const empty = document.getElementById("graphEmpty");
+    const scroll = document.getElementById("graphScroll");
+
+    const stepPx = 22;
+    const h = kMax * stepPx;
+
+    area.style.setProperty("--chartStep", stepPx + "px");
+    area.style.height = h + "px";
+    yAxis.style.height = h + "px";
+
+    // y axis labels（10,000円 = 1万）
+    yAxis.innerHTML = "";
+    for(let k = kMax; k >= 0; k--){
+      const d = document.createElement("div");
+      d.className = "yTick";
+      d.style.height = stepPx + "px";
+      d.textContent = (k === 0) ? "0" : `${k}万`;
+      yAxis.appendChild(d);
+    }
+
+    // x axis labels
+    xAxis.innerHTML = "";
+    for(let m=1; m<=12; m++){
+      const d = document.createElement("div");
+      d.className = "xTick";
+      d.textContent = `${m}月`;
+      xAxis.appendChild(d);
+    }
+
+    // bars
+    bars.innerHTML = "";
+    for(let i=0; i<12; i++){
+      const amt = sums[i];
+      const pctRaw = (amt / (kMax * STEP_YEN)) * 100;
+      const pct = (amt > 0) ? Math.max(2, pctRaw) : 0;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "barBtn";
+      btn.setAttribute("aria-label", `${y}年${i+1}月 ${yen(amt)}`);
+
+      const fill = document.createElement("div");
+      fill.className = "barFill";
+      fill.style.height = pct + "%";
+
+      btn.appendChild(fill);
+      btn.addEventListener("click", ()=>{
+        openGraphMonth(y, i+1, amt);
+      });
+
+      bars.appendChild(btn);
+    }
+
+    // empty message
+    const hasAny = sums.some(v => v > 0);
+    empty.style.display = hasAny ? "none" : "block";
+
+    // 年が大きくて縦に長い時はスクロールで見せる（勝手にOK）
+    if(scroll) scroll.scrollTop = 0;
+  }
+
+  function renderAll(){
+    renderHome();
+    renderRecent();
+    renderLedger();
+    renderGraph();
+  }
+
+  // ===== Detail modal =====
+  const detailOverlay = document.getElementById("detailOverlay");
+  const detailClose = document.getElementById("detailClose");
+
+  function openDetail(id){
+    const entries = loadEntries();
+    const e = entries.find(x => x.id === id);
+    if(!e) return;
+
+    state.detailId = id;
+
+    const cat = CATMAP[e.catKey] || {label:"その他🐤", icon:"🐤"};
+    document.getElementById("dDate").textContent = e.date;
+    document.getElementById("dAmount").textContent = yen(e.amount);
+    document.getElementById("dMemo").textContent = e.memo || "（メモなし）";
+    document.getElementById("dStore").textContent = (e.store && e.store.trim()) ? e.store.trim() : "（なし）";
+    document.getElementById("dCat").textContent = cat.label;
+
+    showOverlay(detailOverlay, true);
+  }
+  function closeDetail(){
+    showOverlay(detailOverlay, false);
+    state.detailId = null;
+  }
+  detailClose.addEventListener("click", closeDetail);
+
+  // click outside to close (optional; keeps your earlier preference OK)
+  detailOverlay.addEventListener("click", (ev)=>{
+    if(ev.target === detailOverlay) closeDetail();
+  });
+
+  document.getElementById("detailEdit").addEventListener("click", ()=>{
+    if(!state.detailId) return;
+    const id = state.detailId;
+    closeDetail();
+    setEditMode(id);
+  });
+
+  document.getElementById("detailDelete").addEventListener("click", ()=>{
+    if(!state.detailId) return;
+    const id = state.detailId;
+    // keep detail open? we'll ask confirm over it
+    askDelete(id, {fromDetail:true});
+  });
+
+  const graphOverlay = document.getElementById("graphOverlay");
+  const graphClose = document.getElementById("graphClose");
+
+  function openGraphMonth(y, m, amt){
+    document.getElementById("gYM").textContent = `${y}年${m}月`;
+    document.getElementById("gAmount").textContent = yen(amt);
+    showOverlay(graphOverlay, true);
+  }
+  function closeGraph(){
+    showOverlay(graphOverlay, false);
+  }
+
+  graphClose.addEventListener("click", closeGraph);
+  graphOverlay.addEventListener("click", (ev)=>{
+    if(ev.target === graphOverlay) closeGraph();
+  });
+
+  // ESC closes detail/confirm
+  document.addEventListener("keydown", (ev)=>{
+    if(ev.key === "Escape"){
+      if(confirmOverlay.classList.contains("show")) closeConfirm();
+      else if(detailOverlay.classList.contains("show")) closeDetail();
+      else if(graphOverlay.classList.contains("show")) closeGraph();
+    }
+  });
+
+  // ===== Confirm delete =====
+  const confirmOverlay = document.getElementById("confirmOverlay");
+  const confirmClose = document.getElementById("confirmClose");
+  const confirmText = document.getElementById("confirmText");
+  const confirmYes = document.getElementById("confirmYes");
+  const confirmNo = document.getElementById("confirmNo");
+
+  let pendingDeleteId = null;
+  let pendingFromDetail = false;
+
+  function askDelete(id, opts={}){
+    const entries = loadEntries();
+    const e = entries.find(x => x.id === id);
+    if(!e) return;
+
+    pendingDeleteId = id;
+    pendingFromDetail = !!opts.fromDetail;
+
+    const cat = CATMAP[e.catKey] || {label:"その他🐤", icon:"🐤"};
+    const line = `${e.date} / ${cat.label} / ${e.memo || "（メモなし）"} / ${yen(e.amount)}`;
+    confirmText.textContent = line;
+
+    showOverlay(confirmOverlay, true);
+  }
+
+  function closeConfirm(){
+    showOverlay(confirmOverlay, false);
+    pendingDeleteId = null;
+    pendingFromDetail = false;
+  }
+  confirmClose.addEventListener("click", closeConfirm);
+  confirmNo.addEventListener("click", closeConfirm);
+  confirmOverlay.addEventListener("click", (ev)=>{
+    if(ev.target === confirmOverlay) closeConfirm();
+  });
+
+  confirmYes.addEventListener("click", ()=>{
+    if(!pendingDeleteId) return;
+
+    const entries = loadEntries();
+    const idx = entries.findIndex(x => x.id === pendingDeleteId);
+    if(idx === -1){ closeConfirm(); return; }
+
+    // keep for undo
+    state.lastDeleted = entries[idx];
+    entries.splice(idx, 1);
+    saveEntries(entries);
+
+    closeConfirm();
+
+    // if delete triggered from detail, close detail too
+    if(pendingFromDetail){
+      closeDetail();
+    }
+
+    renderAll();
+    showToast("削除しました", true);
+  });
+
+  // ===== Overlay helper =====
+  function showOverlay(el, show){
+    el.classList.toggle("show", show);
+    el.setAttribute("aria-hidden", show ? "false" : "true");
+  }
+
+  // ===== Toast (Undo) =====
+  const toast = document.getElementById("toast");
+  const toastText = document.getElementById("toastText");
+  const undoBtn = document.getElementById("undoBtn");
+
+  function showToast(text, canUndo){
+    toastText.textContent = text;
+    undoBtn.style.display = canUndo ? "inline-block" : "none";
+    toast.classList.add("show");
+
+    if(state.toastTimer) clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(()=>{
+      toast.classList.remove("show");
+      state.toastTimer = null;
+      if(!canUndo) return;
+      // time out -> commit delete (do nothing)
+      state.lastDeleted = null;
+    }, canUndo ? 4500 : 1800);
+  }
+
+  undoBtn.addEventListener("click", ()=>{
+    if(!state.lastDeleted) return;
+    const entries = loadEntries();
+    entries.push(state.lastDeleted);
+    saveEntries(entries);
+    state.lastDeleted = null;
+    toast.classList.remove("show");
+    renderAll();
+  });
+
+  // ===== Restore UI state =====
+  function boot(){
+    const ui = loadUI();
+    if(ui.tab) setTab(ui.tab);
+    if(ui.selectedMonth) setSelectedMonth(ui.selectedMonth);
+
+    const entries = loadEntries();
+    const y = ui.selectedYear ? Number(ui.selectedYear) : computeLatestYear(entries);
+    setSelectedYear(y);
+
+    const inCatEl = document.getElementById("inCat");
+    if(inCatEl) inCatEl.value = "food_treat";
+
+    renderAll();
+    wireBackupUI();
+  }
+
+  // ===== Backup / Export / Import =====
+  function safeUUID(){
+    try { return crypto.randomUUID(); }
+    catch { return "id_" + Date.now() + "_" + Math.random().toString(16).slice(2); }
+  }
+
+  function buildBackup(){
+    return {
+      app: "sishutsu-app",
+      backupVersion: 1,
+      createdAt: new Date().toISOString(),
+      entriesKey: KEY,
+      uiKey: UIKEY,
+      entries: loadEntries(),
+      ui: loadUI(),
+    };
+  }
+
+  function downloadText(filename, text, mime){
+    const blob = new Blob([text], {type: mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+  }
+
+  function csvEscape(v){
+    const s = String(v ?? "");
+    if(/[,"\n\r]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  }
+
+  function exportCSV(){
+    const entries = loadEntries().slice().sort((a,b)=> (a.date < b.date ? -1 : 1));
+    const header = ["date","amount","category","store","memo","createdAt","updatedAt"];
+    const rows = [header.join(",")];
+    for(const e of entries){
+      const cat = (CATMAP[e.catKey] ? CATMAP[e.catKey].label : e.catKey);
+      rows.push([
+        e.date,
+        Number(e.amount||0),
+        cat,
+        e.store||"",
+        e.memo||"",
+        e.createdAt||"",
+        e.updatedAt||"",
+      ].map(csvEscape).join(","));
+    }
+    // Excel向けにBOMを付ける
+    const bom = "\ufeff";
+    const text = bom + rows.join("\n");
+    const d = todayISO().replaceAll("-","");
+    downloadText(`sishutsu_meisai_${d}.csv`, text, "text/csv;charset=utf-8");
+    showToast("CSVを書き出したよ✅", false);
+  }
+
+  function normalizeDateString(s){
+    const str = String(s||"").trim();
+    // Accept YYYY-MM-DD or YYYY/MM/DD
+    const m = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if(!m) return null;
+    const y = m[1];
+    const mo = String(m[2]).padStart(2,"0");
+    const d = String(m[3]).padStart(2,"0");
+    return `${y}-${mo}-${d}`;
+  }
+
+  function sanitizeEntry(raw, usedIds){
+    if(!raw || typeof raw !== "object") return null;
+    const date = normalizeDateString(raw.date);
+    if(!date) return null;
+
+    let amount = Number(raw.amount);
+    if(!Number.isFinite(amount)) amount = 0;
+    amount = Math.round(amount);
+
+    let catKey = String(raw.catKey || raw.cat || "other");
+    if(!CATMAP[catKey]) catKey = "other";
+
+    let id = String(raw.id || "").trim();
+    if(!id || usedIds.has(id)) id = safeUUID();
+    usedIds.add(id);
+
+    const memo = String(raw.memo || "").slice(0, 500);
+    const store = String(raw.store || "").slice(0, 200);
+
+    let createdAt = Number(raw.createdAt);
+    if(!Number.isFinite(createdAt)) createdAt = Date.now();
+    let updatedAt = raw.updatedAt === null || raw.updatedAt === undefined ? null : Number(raw.updatedAt);
+    if(updatedAt !== null && !Number.isFinite(updatedAt)) updatedAt = null;
+
+    return { id, date, amount, memo, store, catKey, createdAt, updatedAt };
+  }
+
+  function parseBackupObject(obj){
+    // 1) root is entries array
+    if(Array.isArray(obj)) return { entries: obj, ui: null };
+
+    // 2) root has entries
+    if(obj && typeof obj === "object"){
+      if(Array.isArray(obj.entries)) return { entries: obj.entries, ui: (obj.ui && typeof obj.ui==="object") ? obj.ui : null };
+      // 3) some nested formats
+      if(obj.data && Array.isArray(obj.data.entries)) return { entries: obj.data.entries, ui: (obj.data.ui && typeof obj.data.ui==="object") ? obj.data.ui : null };
+    }
+    return null;
+  }
+
+  let pendingImport = null;
+
+  function setImportInfo(text){
+    const el = document.getElementById("importInfo");
+    if(el) el.textContent = text || "";
+  }
+
+  function setImportButtons(enabled){
+    const rep = document.getElementById("importReplaceBtn");
+    const mer = document.getElementById("importMergeBtn");
+    if(rep) rep.disabled = !enabled;
+    if(mer) mer.disabled = !enabled;
+  }
+
+  function applyImport(mode){
+    if(!pendingImport) return;
+
+    const existing = loadEntries();
+    const usedIds = new Set(existing.map(e => e.id));
+
+    const incomingRaw = pendingImport.entries || [];
+    const sanitized = [];
+    const used = new Set(mode === "merge" ? usedIds : []);
+    for(const r of incomingRaw){
+      const e = sanitizeEntry(r, used);
+      if(e) sanitized.push(e);
+    }
+
+    let merged = sanitized;
+    if(mode === "merge"){
+      merged = existing.concat(sanitized);
+    }
+
+    // sort just in case
+    merged.sort((a,b)=> (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+    saveEntries(merged);
+
+    // UIは「置き換え」の時だけ、入ってたら反映（なければ今のまま）
+    if(mode === "replace" && pendingImport.ui){
+      const keep = loadUI();
+      // 安全のため、使うのはこの3つだけ
+      const ui = {
+        tab: pendingImport.ui.tab || keep.tab,
+        selectedMonth: pendingImport.ui.selectedMonth || keep.selectedMonth,
+        selectedYear: pendingImport.ui.selectedYear || keep.selectedYear,
+      };
+      saveUI(ui);
+    }
+
+    pendingImport = null;
+    setImportButtons(false);
+    setImportInfo("");
+
+    // いま見やすいように最新月へ寄せる
+    const latest = computeLatestMonth(merged);
+    setSelectedMonth(latest);
+    setSelectedYear(Number(latest.slice(0,4)));
+
+    renderAll();
+    showToast(mode === "merge" ? "追加インポートしたよ✅" : "置き換えインポートしたよ✅", false);
+  }
+
+  function wireBackupUI(){
+    const exportJsonBtn = document.getElementById("exportJsonBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const chooseImportBtn = document.getElementById("chooseImportBtn");
+    const importFile = document.getElementById("importFile");
+    const importReplaceBtn = document.getElementById("importReplaceBtn");
+    const importMergeBtn = document.getElementById("importMergeBtn");
+
+    if(exportJsonBtn){
+      exportJsonBtn.addEventListener("click", ()=>{
+        const backup = buildBackup();
+        const text = JSON.stringify(backup, null, 2);
+        const d = todayISO().replaceAll("-","");
+        downloadText(`sishutsu_backup_${d}.json`, text, "application/json;charset=utf-8");
+        showToast("JSONを書き出したよ✅", false);
+      });
+    }
+
+    if(exportCsvBtn){
+      exportCsvBtn.addEventListener("click", exportCSV);
+    }
+
+    if(chooseImportBtn && importFile){
+      chooseImportBtn.addEventListener("click", ()=> importFile.click());
+    }
+
+    if(importFile){
+      importFile.addEventListener("change", async ()=>{
+        const file = importFile.files && importFile.files[0];
+        pendingImport = null;
+        setImportButtons(false);
+        if(!file){
+          setImportInfo("");
+          return;
+        }
+
+        try{
+          const text = await file.text();
+          const obj = JSON.parse(text);
+          const parsed = parseBackupObject(obj);
+          if(!parsed){
+            setImportInfo("このJSONは形式が違うみたい。バックアップ（entries入り）じゃないかも。");
+            return;
+          }
+          // count sanitize-able entries
+          const used = new Set(loadEntries().map(e=>e.id));
+          let ok = 0;
+          for(const r of parsed.entries){
+            const e = sanitizeEntry(r, used);
+            if(e) ok++;
+          }
+          pendingImport = parsed;
+          setImportButtons(true);
+          setImportInfo(`選択中: ${file.name} / 読み込み候補: ${ok} 件`);
+        }catch(err){
+          setImportInfo("読み込み失敗…JSONが壊れてるかも。");
+        }
+        try{ importFile.value = ""; }catch(e){}
+      });
+    }
+
+    if(importReplaceBtn){
+      importReplaceBtn.addEventListener("click", ()=>{
+        if(!pendingImport) return;
+        const ok = confirm("今あるデータを消して、バックアップの内容で置き換えるよ。よければOK。");
+        if(ok) applyImport("replace");
+      });
+    }
+
+    if(importMergeBtn){
+      importMergeBtn.addEventListener("click", ()=>{
+        if(!pendingImport) return;
+        const ok = confirm("今あるデータに、バックアップの明細を追加するよ。よければOK。");
+        if(ok) applyImport("merge");
+      });
+    }
+  }
+
+
+
+
+  boot();
+</script>
+</body>
+</html>
