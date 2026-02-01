@@ -100,7 +100,31 @@
       font-weight: 900;
       cursor:pointer;
     }
-    .tabBtn[aria-selected="true"]{
+    
+    /* Tabs: 1行目=絵文字 / 2行目=ラベル（枠サイズはそのまま） */
+    .tabBtn{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: 6px;
+      line-height: 1.05;
+      text-align:center;
+    }
+    .tabEmoji{
+      font-size: 22px;
+      line-height: 1;
+    }
+    .tabLabel{
+      font-size: 20px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    @media (max-width: 420px){
+      .tabEmoji{ font-size: 20px; }
+      .tabLabel{ font-size: 18px; }
+    }
+.tabBtn[aria-selected="true"]{
       border-color: #a8d2ff;
       background: linear-gradient(135deg, var(--accentSoft), #ffffff);
       box-shadow: 0 0 0 4px rgba(120,182,255,.12);
@@ -718,10 +742,10 @@ font-weight: 900;
     </header>
 
     <nav class="tabs" role="tablist" aria-label="tabs">
-      <button class="tabBtn" role="tab" id="tabbtn-home" aria-controls="tab-home" aria-selected="true">🏠 ホーム</button>
-      <button class="tabBtn" role="tab" id="tabbtn-input" aria-controls="tab-input" aria-selected="false">✍️ 入力</button>
-      <button class="tabBtn" role="tab" id="tabbtn-ledger" aria-controls="tab-ledger" aria-selected="false">🧾 明細</button>
-      <button class="tabBtn" role="tab" id="tabbtn-graph" aria-controls="tab-graph" aria-selected="false">📊 グラフ</button>
+      <button class="tabBtn" role="tab" id="tabbtn-home" aria-controls="tab-home" aria-selected="true"><span class="tabEmoji">🏠</span><span class="tabLabel">ホーム</span></button>
+      <button class="tabBtn" role="tab" id="tabbtn-input" aria-controls="tab-input" aria-selected="false"><span class="tabEmoji">✍️</span><span class="tabLabel">入力</span></button>
+      <button class="tabBtn" role="tab" id="tabbtn-ledger" aria-controls="tab-ledger" aria-selected="false"><span class="tabEmoji">🧾</span><span class="tabLabel">明細</span></button>
+      <button class="tabBtn" role="tab" id="tabbtn-graph" aria-controls="tab-graph" aria-selected="false"><span class="tabEmoji">📊</span><span class="tabLabel">グラフ</span></button>
     </nav>
 
     <!-- HOME -->
