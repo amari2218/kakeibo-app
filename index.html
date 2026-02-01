@@ -585,6 +585,24 @@
     .barFill{ width: clamp(8px, 65%, 20px); }
   }
 
+
+  /* --- mobile tap highlight (iOS/Android) OFF --- */
+  :root{
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+  a, button, input, select, textarea, .tabBtn, .barBtn{
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+  /* remove default focus rectangle on touch; keep keyboard focus via :focus-visible */
+  button:focus, .tabBtn:focus, .barBtn:focus{
+    outline: none;
+    box-shadow: none;
+  }
+  .tabBtn:focus-visible, .barBtn:focus-visible{
+    outline: 2px solid rgba(120, 180, 255, .55);
+    outline-offset: 2px;
+  }
+
 </style>
 </head>
 
