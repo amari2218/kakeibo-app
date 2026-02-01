@@ -615,6 +615,74 @@ font-weight: 900;
     outline-offset: 2px;
   }
 
+
+    /* --- Quick savings toggle (先取り貯金) --- */
+    .amountRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width:0;
+    }
+    .amountRow > input{
+      flex:1;
+      min-width:0;
+    }
+    .saveQuick{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .coinBtn{
+      border:1px solid #cfe2ff;
+      background:#fff;
+      border-radius:999px;
+      padding:6px 10px;
+      cursor:pointer;
+      font-size: 14px;
+      line-height: 1;
+      user-select:none;
+    }
+    .coinBtn.active{
+      background:#d7ecff;
+      border-color:#8cc6ff;
+      box-shadow: 0 0 0 4px rgba(140,198,255,.25);
+    }
+    @media (max-width: 360px){
+      .saveQuickText{ display:none; }
+    }
+
+    /* --- Home summary: show "incl savings" on the right --- */
+    .sumRow{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .sumLeft{ min-width:0; flex:1; }
+    .sumRight{
+      text-align:right;
+      min-width: 130px;
+    }
+    .incLabel{
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--muted);
+      letter-spacing: .01em;
+      margin-top: 2px;
+    }
+    .incSum{
+      font-size: 16px;
+      font-weight: 900;
+      color:#0b3a66;
+      margin-top: 4px;
+      white-space:nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
 </style>
 </head>
 
@@ -638,9 +706,17 @@ font-weight: 900;
     <!-- HOME -->
     <section id="tab-home" role="tabpanel" aria-labelledby="tabbtn-home">
       <div class="card bigSum" id="homeSumCard" title="タップで明細へ">
-        <div class="month" id="homeMonth">----</div>
-        <div class="sum" id="homeSum">¥0</div>
-        <div class="hint">カードをタップすると、その月の明細に移動するよ。</div>
+        <div class="sumRow">
+          <div class="sumLeft">
+            <div class="month" id="homeMonth">----</div>
+            <div class="sum" id="homeSum">¥0</div>
+            <div class="hint">カードをタップすると、その月の明細に移動するよ。</div>
+          </div>
+          <div class="sumRight">
+            <div class="incLabel">うち、先取り貯金込み</div>
+            <div class="incSum" id="homeSumIncl">¥0</div>
+          </div>
+        </div>
       </div>
 
       <div class="card" id="homeByCatCard">
@@ -690,7 +766,13 @@ font-weight: 900;
           </div>
           <div>
             <label>金額（円）</label>
-            <input id="inAmount" type="number" inputmode="numeric" placeholder="260">
+            <div class="amountRow">
+              <input id="inAmount" type="number" inputmode="numeric" placeholder="260">
+              <div class="saveQuick">
+                <span class="saveQuickText">先取り貯金</span>
+                <button type="button" class="coinBtn" id="saveQuickBtn" aria-pressed="false" title="先取り貯金として記録">💰</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -915,6 +997,38 @@ font-weight: 900;
 
   document.getElementById("inDate").value = todayISO();
 
+  // ===== Quick toggle: 先取り貯金💰 =====
+  const saveQuickBtn = document.getElementById("saveQuickBtn");
+  let prevCatBeforeSave = null;
+
+  function syncSaveQuick(){
+    if(!saveQuickBtn) return;
+    const active = (inCat.value === "save");
+    saveQuickBtn.classList.toggle("active", active);
+    saveQuickBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  if(saveQuickBtn){
+    saveQuickBtn.addEventListener("click", ()=>{
+      if(inCat.value !== "save"){
+        prevCatBeforeSave = inCat.value;
+        inCat.value = "save";
+      }else{
+        // toggle off: restore previous category if possible
+        const fallback = (prevCatBeforeSave && prevCatBeforeSave !== "save")
+          ? prevCatBeforeSave
+          : (CATS.find(c=>c.key !== "save")?.key || "other");
+        inCat.value = fallback;
+      }
+      syncSaveQuick();
+    });
+
+    // if user changes category manually, keep button state consistent
+    inCat.addEventListener("change", syncSaveQuick);
+    syncSaveQuick();
+  }
+
+
   // ===== Tabs =====
   function setTab(name){
     state.tab = name;
@@ -1015,10 +1129,45 @@ font-weight: 900;
 
   function resetForm(keepDate=true, keepCat=true){
     if(!keepDate) document.getElementById("inDate").value = todayISO();
+
+  // ===== Quick toggle: 先取り貯金💰 =====
+  const saveQuickBtn = document.getElementById("saveQuickBtn");
+  let prevCatBeforeSave = null;
+
+  function syncSaveQuick(){
+    if(!saveQuickBtn) return;
+    const active = (inCat.value === "save");
+    saveQuickBtn.classList.toggle("active", active);
+    saveQuickBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  if(saveQuickBtn){
+    saveQuickBtn.addEventListener("click", ()=>{
+      if(inCat.value !== "save"){
+        prevCatBeforeSave = inCat.value;
+        inCat.value = "save";
+      }else{
+        // toggle off: restore previous category if possible
+        const fallback = (prevCatBeforeSave && prevCatBeforeSave !== "save")
+          ? prevCatBeforeSave
+          : (CATS.find(c=>c.key !== "save")?.key || "other");
+        inCat.value = fallback;
+      }
+      syncSaveQuick();
+    });
+
+    // if user changes category manually, keep button state consistent
+    inCat.addEventListener("change", syncSaveQuick);
+    syncSaveQuick();
+  }
+
     document.getElementById("inAmount").value = "";
     document.getElementById("inMemo").value = "";
     document.getElementById("inStore").value = "";
-    if(!keepCat) document.getElementById("inCat").value = "food_treat";
+    if(!keepCat){
+      document.getElementById("inCat").value = "food_treat";
+      document.getElementById("inCat").dispatchEvent(new Event("change"));
+    }
   }
 
   document.getElementById("resetBtn").addEventListener("click", ()=>{
@@ -1038,6 +1187,7 @@ font-weight: 900;
     document.getElementById("inMemo").value = e.memo;
     document.getElementById("inStore").value = e.store || "";
     document.getElementById("inCat").value = e.catKey;
+    document.getElementById("inCat").dispatchEvent(new Event("change"));
 
     setTab("input");
   }
@@ -1113,12 +1263,13 @@ font-weight: 900;
     const latest = computeLatestMonth(entries);
 
     // Home shows latest month sum and sets selectedMonth to latest
-    const sum = entries
-      .filter(e => monthKey(e.date) === latest)
-      .reduce((s,e)=> s + Number(e.amount||0), 0);
-
-    document.getElementById("homeMonth").textContent = monthLabel(latest);
-    document.getElementById("homeSum").textContent = yen(sum);
+    const inLatest = entries.filter(e => monthKey(e.date) === latest);
+    const sumAll = inLatest.reduce((s,e)=> s + Number(e.amount||0), 0);
+    const sumNoSave = inLatest.filter(e => (e.catKey||"") !== "save").reduce((s,e)=> s + Number(e.amount||0), 0);
+document.getElementById("homeMonth").textContent = monthLabel(latest);
+    document.getElementById("homeSum").textContent = yen(sumNoSave);
+    const inclEl = document.getElementById("homeSumIncl");
+    if(inclEl) inclEl.textContent = yen(sumAll);
     
     state.latestMonth = latest; // ★追加（selectedMonthは触らない）
     renderHomeBreakdown(latest);
