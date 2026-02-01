@@ -500,7 +500,7 @@ font-weight: 900;
     
       /* ===== Graph ===== */
   .chartScroll{
-    max-height: 360px;
+    max-height: 380px;
     overflow-y: auto;
     padding-right: 4px;
   }
@@ -529,7 +529,7 @@ font-weight: 900;
     white-space: nowrap;
   }
   .chartArea{
-    --chartStep: 22px; /* 1目盛りの高さ（見た目） */
+    --chartStep: 20px; /* 1目盛りの高さ（見た目） */
     position: relative;
     border: 1px solid var(--line);
     border-radius: var(--r-input);
@@ -682,6 +682,27 @@ font-weight: 900;
       white-space:nowrap;
       font-variant-numeric: tabular-nums;
     }
+
+
+  /* --- Home sum card: align "incl savings" block with main sum + let hint use full width --- */
+  @supports (display: grid) and (display: contents) {
+    .sumRow{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      column-gap:14px;
+      row-gap:6px;
+      align-items:end;
+    }
+    .sumLeft{ display: contents; }
+    .month{ grid-column:1; grid-row:1; }
+    .sum{ grid-column:1; grid-row:2; }
+    .sumRight{ grid-column:2; grid-row:2; align-self:end; }
+    .hint{
+      grid-column:1 / -1;
+      grid-row:3;
+      margin-top: 0;
+    }
+  }
 
 </style>
 </head>
@@ -1434,9 +1455,9 @@ document.getElementById("homeMonth").textContent = monthLabel(latest);
     }
 
     const max = Math.max(...sums, 0);
-    const STEP_YEN = 10000;
+    const STEP_YEN = 20000; // 2万円ごとに横線
     let kMax = Math.ceil(max / STEP_YEN);
-    if(kMax < 8) kMax = 8; // 見た目の最低目盛り（0〜8万）
+    if(kMax < 10) kMax = 10; // 見た目の最低目盛り（0〜20万）
 
     const area = document.getElementById("graphArea");
     const yAxis = document.getElementById("graphYAxis");
@@ -1445,7 +1466,7 @@ document.getElementById("homeMonth").textContent = monthLabel(latest);
     const empty = document.getElementById("graphEmpty");
     const scroll = document.getElementById("graphScroll");
 
-    const stepPx = 22;
+    const stepPx = 20; // 1目盛りの見た目（高さ）
     const h = kMax * stepPx;
 
     area.style.setProperty("--chartStep", stepPx + "px");
