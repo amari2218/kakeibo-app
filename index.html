@@ -270,23 +270,33 @@
       display:flex;
       align-items:baseline;
       gap:10px;
-      justify-content: space-between;
+      min-width:0;
     }
-    .memo{
-      font-weight: 900;
+        .mainRowLeft{
+      display:flex;
+      gap:10px;
+      align-items:baseline;
+      min-width:0;
+      flex:1;
+    }
+.memo{
+font-weight: 900;
       font-size: 13px;
       line-height: 1.35;
       overflow:hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       max-width: 100%;
+      flex:1;
+      min-width:0;
     }
     .amount{
-      font-weight: 900;
+font-weight: 900;
       font-size: 14px;
       color:#0b3a66;
       white-space: nowrap;
-      margin-left: 8px;
+            margin-left:auto;
+      flex-shrink:0;
     }
     .line2{
       margin-top: 4px;
@@ -1171,7 +1181,7 @@
 
         <div class="tapArea" data-tap="${e.id}">
           <div class="line1">
-            <div style="display:flex; gap:10px; align-items:baseline; min-width:0;">
+            <div class="mainRowLeft">
               <div class="dateMini">${mmdd}</div>
               <div class="memo" title="${memo}">${memo}</div>
             </div>
