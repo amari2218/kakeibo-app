@@ -1455,9 +1455,22 @@ document.getElementById("homeMonth").textContent = monthLabel(latest);
     }
 
     const max = Math.max(...sums, 0);
-    const STEP_YEN = 20000; // 2万円ごとに横線
-    let kMax = Math.ceil(max / STEP_YEN);
-    if(kMax < 10) kMax = 10; // 見た目の最低目盛り（0〜20万）
+
+    // --- auto scale (keeps the card height comfortable) ---
+    // 基本は2万円刻み。最大額が大きい月だけ、自動で刻み幅を広げてスクロールを避ける。
+    const STEP_CANDIDATES = [20000, 50000, 100000, 200000, 500000]; // 2万→5万→10万→…
+    const MAX_TICKS = 15;  // この本数を超えると縦に長くなりすぎる
+    const MIN_TICKS = 10;  // 少なすぎるとスカスカになるので最低本数を確保
+
+    let STEP_YEN = STEP_CANDIDATES[0];
+    let kMax = 0;
+
+    for(const s of STEP_CANDIDATES){
+      STEP_YEN = s;
+      kMax = Math.ceil(max / STEP_YEN);
+      if(kMax <= MAX_TICKS) break;
+    }
+    if(kMax < MIN_TICKS) kMax = MIN_TICKS;
 
     const area = document.getElementById("graphArea");
     const yAxis = document.getElementById("graphYAxis");
