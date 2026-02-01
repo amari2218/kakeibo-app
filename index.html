@@ -92,13 +92,14 @@
       gap:10px;
     }
     .tabBtn{
-      flex:1;
+      flex: 1 1 0;
       border: 1px solid #d9e3f1;
       border-radius: var(--r-pill);
       background: #fff;
       padding: 10px 12px;
       font-weight: 900;
       cursor:pointer;
+          box-shadow: 0 0 0 4px rgba(180, 205, 235, .18);
     }
     
     /* Tabs: 1行目=絵文字 / 2行目=ラベル（枠サイズはそのまま） */
@@ -127,7 +128,7 @@
 .tabBtn[aria-selected="true"]{
       border-color: #a8d2ff;
       background: linear-gradient(135deg, var(--accentSoft), #ffffff);
-      box-shadow: 0 0 0 4px rgba(120,182,255,.12);
+      box-shadow: 0 0 0 4px rgba(120,182,255,.28);
     }
 
     /* ===== Cards ===== */
