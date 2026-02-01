@@ -494,12 +494,13 @@
   }
   .chartWrap{
     display:grid;
-    grid-template-columns: 52px 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 0px;
     align-items: start;
   }
   .yAxis{
-    display:flex;
+    display:none; /* ←縦軸の数字を消す */
+    /* display:flex; */
     flex-direction: column;
     align-items: flex-end;
     justify-content: space-between;
@@ -564,6 +565,8 @@
     display:flex;
     gap: 6px;
     margin-top: 8px;
+    padding: 0 10px; /* chartAreaの左右paddingと合わせてバーと位置を揃える */
+    box-sizing: border-box;
   }
   .xTick{
     flex:1;
@@ -573,7 +576,16 @@
     font-weight: 800;
     white-space: nowrap;
   }
-  </style>
+  
+  @media (max-width: 420px){
+    .chartArea{ padding: 8px; }
+    .xAxis{ padding: 0 8px; gap: 4px; }
+    .bars{ gap: 4px; }
+    .xTick{ font-size: 10px; }
+    .barFill{ width: clamp(8px, 65%, 20px); }
+  }
+
+</style>
 </head>
 
 <body>
@@ -1260,23 +1272,20 @@
     yAxis.style.height = h + "px";
 
     // y axis labels（10,000円 = 1万）
-    yAxis.innerHTML = "";
-    for(let k = kMax; k >= 0; k--){
-      const d = document.createElement("div");
-      d.className = "yTick";
-      d.style.height = stepPx + "px";
-      d.textContent = (k === 0) ? "0" : `${k}万`;
-      yAxis.appendChild(d);
-    }
+// 今回は「数字は消したい」運用なので、描画はしない（見た目が広くなる）
+yAxis.innerHTML = "";
+yAxis.style.display = "none";
 
     // x axis labels
-    xAxis.innerHTML = "";
-    for(let m=1; m<=12; m++){
-      const d = document.createElement("div");
-      d.className = "xTick";
-      d.textContent = `${m}月`;
-      xAxis.appendChild(d);
-    }
+xAxis.innerHTML = "";
+const narrow = window.matchMedia && window.matchMedia("(max-width: 420px)").matches;
+for(let m=1; m<=12; m++){
+  const d = document.createElement("div");
+  d.className = "xTick";
+  // スマホ幅だと「11月」「12月」が窮屈なので短縮表示（1〜12）
+  d.textContent = narrow ? String(m) : `${m}月`;
+  xAxis.appendChild(d);
+}
 
     // bars
     bars.innerHTML = "";
